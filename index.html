@@ -3,142 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoTrack - ניהול חריגות וזמנים</title>
+    <title>AutoTrack Pro - גרסת עבודה</title>
     <style>
         :root {
             --primary: #34495e;
-            --danger-bg: #ffebee;
-            --danger-text: #c0392b;
-            --success-text: #27ae60;
-            --light: #f8f9fa;
-            --edit-color: #f39c12;
-            --import-color: #9b59b6;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+            --success: #27ae60;
+            --archive: #95a5a6;
+            --restore: #3498db;
         }
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: #e9ecef;
-            margin: 5px;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            min-height: 98vh;
-        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 12px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        h1 { text-align: center; color: var(--primary); margin: 5px 0; }
+        .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; }
+        
+        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+        input, button { padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
+        
+        button { cursor: pointer; color: white; border: none; font-weight: bold; }
+        .btn-add { background-color: var(--primary); }
+        .btn-export { background-color: var(--success); }
+        .btn-done { background-color: var(--success); padding: 2px 6px; }
+        .btn-del { background-color: var(--danger); padding: 2px 6px; }
+        .btn-edit { background-color: #f39c12; padding: 2px 6px; }
+        .btn-restore { background-color: var(--restore); padding: 2px 6px; color: white; }
 
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            flex-grow: 1;
-        }
-
-        h1 { text-align: center; color: var(--primary); margin: 0 0 5px 0; font-size: 1.6em; }
-
-        .stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card {
-            padding: 8px 15px;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-            min-width: 100px;
-            text-align: center;
-        }
-
-        .stat-total { background-color: var(--primary); }
-        .stat-overdue { background-color: var(--danger-text); }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-
-        .form-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 5px;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 4px;
-        }
-
-        input, button { padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
-        .search-input { width: 200px; border: 2px solid var(--primary); }
-
-        button { color: white; cursor: pointer; font-weight: bold; border: none; }
-        .export-btn { background-color: #27ae60; }
-        .import-label { background-color: var(--import-color); padding: 5px 10px; border-radius: 3px; cursor: pointer; display: inline-block; }
-        .add-btn { background-color: var(--primary); }
-        .delete-btn { background-color: #e74c3c; padding: 1px 6px; }
-        .edit-btn { background-color: var(--edit-color); padding: 1px 6px; }
-
-        #fileInput { display: none; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        th, td { padding: 6px 4px; text-align: center; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: center; border: 1px solid #eee; }
         th { background-color: var(--primary); color: white; }
 
-        .row-overdue { background-color: var(--danger-bg) !important; }
-        .row-overdue td { color: #721c24; }
+        /* צבעי רמזור */
+        .status-overdue { background-color: #ffdce0; color: #c0392b; font-weight: bold; }
+        .status-soon { background-color: #fff4ce; color: #856404; font-weight: bold; }
+        .status-ok { background-color: #e6ffed; color: #28a745; }
 
-        .days-cell { font-weight: bold; }
-        .positive { color: var(--success-text); }
-        .negative { color: var(--danger-text); }
+        .archive-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 10px; }
+        .archive-section h2 { font-size: 1.2rem; color: var(--archive); margin-bottom: 5px; }
+        .archive-table { opacity: 0.8; }
+        .archive-table th { background-color: var(--archive); }
 
-        .notes-cell { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        footer { text-align: center; padding: 10px; color: #7f8c8d; font-size: 11px; margin-top: 10px; }
+        footer { text-align: center; padding: 10px; color: #7f8c8d; font-size: 11px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚗 AutoTrack</h1>
+    <h1>🚗 AutoTrack Pro</h1>
 
     <div class="stats-bar">
-        <div class="stat-card stat-total">סה"כ רכבים: <span id="totalCount">0</span></div>
-        <div class="stat-card stat-overdue">בחריגה: <span id="overdueCount">0</span></div>
+        <div class="stat-card" style="background: var(--primary)">סה"כ: <span id="totalCount">0</span></div>
+        <div class="stat-card" style="background: var(--danger)">חריגה: <span id="overdueCount">0</span></div>
+        <div class="stat-card" style="background: var(--archive)">ארכיון: <span id="archiveCount">0</span></div>
     </div>
 
-    <div class="header-actions">
-        <input type="text" id="searchInput" class="search-input" placeholder="🔍 חיפוש..." oninput="updateTable()">
-        <div>
-            <label for="fileInput" class="import-label">📂 ייבוא קובץ</label>
-            <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
-            <button class="export-btn" onclick="exportToCSV()">📊 ייצוא קובץ</button>
-        </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <input type="text" id="searchInput" placeholder="🔍 חיפוש בצי הרכב..." oninput="updateTable()" style="width: 200px;">
+        <button class="btn-export" onclick="exportToCSV()">📊 ייצוא ידני</button>
     </div>
 
     <div class="form-group">
         <input type="text" id="plate" placeholder="לוחית">
         <input type="text" id="owner" placeholder="שם בעל">
-        <input type="tel" id="phone" placeholder="פלאפון">
+        <input type="tel" id="phone" placeholder="טלפון">
         <input type="text" id="address" placeholder="כתובת">
         <input type="date" id="targetDate">
         <input type="text" id="notes" placeholder="הערות">
-        <button class="add-btn" onclick="addRow()">הוסף / עדכן +</button>
+        <button class="btn-add" onclick="addRow()">הוסף / עדכן +</button>
     </div>
 
-    <table id="trackingTable">
+    <table>
         <thead>
             <tr>
                 <th>לוחית</th>
                 <th>בעל הרכב</th>
                 <th>פלאפון</th>
-                <th>כתובת</th>
                 <th>הערות</th>
                 <th>ימים</th>
                 <th>פעולות</th>
@@ -146,6 +88,22 @@
         </thead>
         <tbody id="tableBody"></tbody>
     </table>
+
+    <div class="archive-section">
+        <h2>📦 ארכיון (רכבים שבוצעו)</h2>
+        <table class="archive-table">
+            <thead>
+                <tr>
+                    <th>לוחית</th>
+                    <th>בעל הרכב</th>
+                    <th>תאריך סיום</th>
+                    <th>הערות</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="archiveBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <footer>
@@ -154,42 +112,42 @@
 
 <script>
     let fleet = JSON.parse(localStorage.getItem('fleetData')) || [];
+    let archive = JSON.parse(localStorage.getItem('archiveData')) || [];
+    let actionCounter = 0;
 
     function updateTable() {
         const tbody = document.getElementById('tableBody');
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         tbody.innerHTML = '';
-        
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setHours(0,0,0,0);
 
-        let total = 0;
-        let overdue = 0;
+        let total = 0, overdue = 0;
 
         fleet.forEach((item, index) => {
             const target = new Date(item.targetDate);
-            target.setHours(0, 0, 0, 0);
-            const diffTime = target - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const isOverdue = diffDays < 0;
+            const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+            
+            let statusClass = "status-ok";
+            if (diffDays < 0) statusClass = "status-overdue";
+            else if (diffDays <= 1) statusClass = "status-soon";
 
             total++;
-            if (isOverdue) overdue++;
+            if (diffDays < 0) overdue++;
 
             if (item.plate.includes(searchTerm) || (item.owner && item.owner.toLowerCase().includes(searchTerm))) {
                 const row = document.createElement('tr');
-                if (isOverdue) row.classList.add('row-overdue');
-
+                row.className = statusClass;
                 row.innerHTML = `
                     <td><b>${item.plate}</b></td>
                     <td>${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td>${item.address || ''}</td>
-                    <td class="notes-cell" title="${item.notes || ''}">${item.notes || ''}</td>
-                    <td class="days-cell ${isOverdue ? 'negative' : 'positive'}">${diffDays}</td>
+                    <td>${item.notes || ''}</td>
+                    <td>${diffDays}</td>
                     <td>
-                        <button class="edit-btn" onclick="editRow(${index})">✏️</button>
-                        <button class="delete-btn" onclick="deleteRow(${index})">🗑️</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})" title="סימון כבוצע">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})" title="עריכה">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})" title="מחיקה">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -198,7 +156,31 @@
 
         document.getElementById('totalCount').innerText = total;
         document.getElementById('overdueCount').innerText = overdue;
-        localStorage.setItem('fleetData', JSON.stringify(fleet));
+        document.getElementById('archiveCount').innerText = archive.length;
+        
+        updateArchiveTable();
+        saveData();
+    }
+
+    function updateArchiveTable() {
+        const abody = document.getElementById('archiveBody');
+        abody.innerHTML = '';
+        // מציג את 15 הרכבים האחרונים שבוצעו
+        archive.slice(-15).reverse().forEach((item, index) => {
+            const actualIndex = archive.length - 1 - index;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.plate}</td>
+                <td>${item.owner}</td>
+                <td>${item.doneDate}</td>
+                <td>${item.notes}</td>
+                <td>
+                    <button class="btn-restore" onclick="restoreFromArchive(${actualIndex})" title="החזר לרשימה פעילה">↺</button>
+                    <button class="btn-del" onclick="deleteFromArchive(${actualIndex})" title="מחיקה סופית">🗑️</button>
+                </td>
+            `;
+            abody.appendChild(row);
+        });
     }
 
     function addRow() {
@@ -210,77 +192,83 @@
             targetDate: document.getElementById('targetDate').value,
             notes: document.getElementById('notes').value
         };
+        if(!data.plate || !data.targetDate) return alert("חובה להזין לוחית ותאריך יעד");
 
-        if (!data.plate || !data.targetDate) return alert("מלא לוחית ותאריך");
-
-        const existingIndex = fleet.findIndex(item => item.plate === data.plate);
-        if (existingIndex !== -1) {
-            if (confirm("לוחית זיהוי זו כבר קיימת. האם לעדכן את הפרטים הקיימים?")) {
-                fleet[existingIndex] = data;
-            } else {
-                return;
-            }
-        } else {
-            fleet.push(data);
-        }
-
+        const idx = fleet.findIndex(i => i.plate === data.plate);
+        if(idx !== -1) fleet[idx] = data; else fleet.push(data);
+        
+        trackAction();
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
     }
 
-    function editRow(index) {
+    function moveToArchive(index) {
         const item = fleet[index];
-        document.getElementById('plate').value = item.plate;
-        document.getElementById('owner').value = item.owner;
-        document.getElementById('phone').value = item.phone;
-        document.getElementById('address').value = item.address;
-        document.getElementById('targetDate').value = item.targetDate;
-        document.getElementById('notes').value = item.notes;
+        item.doneDate = new Date().toLocaleDateString('he-IL');
+        archive.push(item);
+        fleet.splice(index, 1);
+        trackAction();
+        updateTable();
+    }
+
+    function restoreFromArchive(index) {
+        const item = archive[index];
+        delete item.doneDate; // מסיר את תאריך הסיום כדי להחזירו למצב פעיל
+        fleet.push(item);
+        archive.splice(index, 1);
+        trackAction();
+        updateTable();
+    }
+
+    function deleteFromArchive(index) {
+        if(confirm("למחוק לצמיתות מהארכיון?")) {
+            archive.splice(index, 1);
+            updateTable();
+        }
+    }
+
+    function editRow(index) {
+        const i = fleet[index];
+        document.getElementById('plate').value = i.plate;
+        document.getElementById('owner').value = i.owner;
+        document.getElementById('phone').value = i.phone;
+        document.getElementById('address').value = i.address;
+        document.getElementById('targetDate').value = i.targetDate;
+        document.getElementById('notes').value = i.notes;
         fleet.splice(index, 1);
         updateTable();
     }
 
     function deleteRow(index) {
-        if(confirm("למחוק?")) { fleet.splice(index, 1); updateTable(); }
+        if(confirm("למחוק רכב זה מהרשימה?")) { 
+            fleet.splice(index, 1); 
+            trackAction(); 
+            updateTable(); 
+        }
     }
 
-    function exportToCSV() {
-        if (fleet.length === 0) return alert("אין נתונים לייצוא");
+    function trackAction() {
+        actionCounter++;
+        if (actionCounter >= 5) {
+            exportToCSV(true);
+            actionCounter = 0;
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem('fleetData', JSON.stringify(fleet));
+        localStorage.setItem('archiveData', JSON.stringify(archive));
+    }
+
+    function exportToCSV(isAuto = false) {
+        if (!fleet.length && !archive.length) return;
         let csv = "\uFEFFלוחית,בעל הרכב,פלאפון,כתובת,הערות,תאריך יעד\n";
-        fleet.forEach(i => {
-            csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`;
-        });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = 'AutoTrack_Export.csv';
-        link.click();
-    }
-
-    function importCSV(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split('\n');
-            let updatedCount = 0;
-            let addedCount = 0;
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim() === "") continue;
-                const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                const cleanCols = cols.map(c => c.replace(/"/g, ''));
-                if (cleanCols.length >= 2) {
-                    const newItem = { plate: cleanCols[0].trim(), owner: cleanCols[1], phone: cleanCols[2], address: cleanCols[3], notes: cleanCols[4], targetDate: cleanCols[5] };
-                    const existingIndex = fleet.findIndex(item => item.plate === newItem.plate);
-                    if (existingIndex !== -1) { fleet[existingIndex] = newItem; updatedCount++; }
-                    else { fleet.push(newItem); addedCount++; }
-                }
-            }
-            alert(`ייבוא הושלם!\nנוספו: ${addedCount}\nעודכנו: ${updatedCount}`);
-            updateTable();
-            event.target.value = '';
-        };
-        reader.readAsText(file);
+        fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = isAuto ? `Backup_${new Date().getTime()}.csv` : 'AutoTrack_Export.csv';
+        a.click();
     }
 
     updateTable();
