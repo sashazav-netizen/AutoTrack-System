@@ -22,7 +22,6 @@
         .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
-        /* סידור הכפתורים והחיפוש בשורה אחת */
         .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
         .search-box { flex: 2; padding: 7px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
         .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
@@ -41,6 +40,7 @@
         .btn-done { background-color: var(--success); padding: 2px 8px; }
         .btn-del { background-color: var(--danger); padding: 2px 8px; }
         .btn-edit { background-color: #f39c12; padding: 2px 8px; }
+        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 2px 8px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 8px 4px; text-align: center; border: 1px solid #eee; }
@@ -55,7 +55,6 @@
         footer { text-align: center; padding: 15px; color: #7f8c8d; font-size: 11px; }
         #fileInput { display: none; }
 
-        /* התאמה לנייד */
         @media (max-width: 600px) {
             .header-controls { flex-direction: column; align-items: stretch; }
             .action-buttons { min-width: 100%; }
@@ -79,7 +78,7 @@
         <div class="action-buttons">
             <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
             <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
-            <button class="btn-whatsapp" onclick="sendToWhatsApp()">📱 וואטסאפ</button>
+            <button class="btn-whatsapp" onclick="sendFullBackupWhatsApp()">📱 גיבוי מלא</button>
         </div>
         <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
     </div>
@@ -101,7 +100,6 @@
                 <th>בעל</th>
                 <th>טלפון</th>
                 <th>כתובת</th>
-                <th>הערות</th>
                 <th>ימים</th>
                 <th>פעולות</th>
             </tr>
@@ -110,7 +108,7 @@
     </table>
 
     <div class="archive-section">
-        <h3>📦 ארכיון (הושלמו לאחרונה)</h3>
+        <h3>📦 ארכיון (אחרונים)</h3>
         <table>
             <tbody id="archiveBody"></tbody>
         </table>
@@ -148,12 +146,12 @@
                     <td>${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
                     <td class="truncate" title="${item.address}">${item.address || ''}</td>
-                    <td class="truncate" title="${item.notes}">${item.notes || ''}</td>
                     <td>${diffDays}</td>
                     <td>
-                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
+                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})" title="שלח בוואטסאפ">📱</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})" title="סיים">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})" title="ערוך">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})" title="מחק">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -181,20 +179,38 @@
     function addRow() {
         const plate = document.getElementById('plate').value.trim();
         const date = document.getElementById('targetDate').value;
-        if(!plate || !date) return alert("מלא לוחית ותאריך");
-
-        const data = {
+        if(!plate || !date) return alert("נא להזין לוחית ותאריך");
+        fleet.push({
             plate: plate,
             owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             targetDate: date,
             notes: document.getElementById('notes').value
-        };
-        
-        fleet.push(data);
+        });
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
+    }
+
+    // וואטסאפ עבור רכב ספציפי (חדש!)
+    function sendRowWhatsApp(index) {
+        const i = fleet[index];
+        let text = `*פרטי רכב - AutoTrack Pro*\n`;
+        text += `🚗 לוחית: *${i.plate}*\n`;
+        text += `👤 בעל הרכב: ${i.owner || '-'}\n`;
+        text += `📍 כתובת: ${i.address || '-'}\n`;
+        text += `📅 תאריך יעד: ${i.targetDate}\n`;
+        if(i.notes) text += `💬 הערות: ${i.notes}`;
+        
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    // גיבוי מלא לוואטסאפ
+    function sendFullBackupWhatsApp() {
+        if (!fleet.length) return alert("אין נתונים לגיבוי");
+        let text = "*גיבוי AutoTrack Pro - מלא*\n\n";
+        fleet.forEach(i => text += `🚗 *${i.plate}* | ${i.owner} | יעד: ${i.targetDate}\n`);
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function moveToArchive(index) {
@@ -225,22 +241,15 @@
     }
 
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים");
+        if (!fleet.length) return alert("אין נתונים לייצוא");
         let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
         fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Backup_Fleet.csv';
+        a.download = 'AutoTrack_Backup.csv';
         a.click();
-    }
-
-    function sendToWhatsApp() {
-        if (!fleet.length) return alert("אין נתונים");
-        let text = "*גיבוי AutoTrack Pro*\n";
-        fleet.forEach(i => text += `🚗 ${i.plate} | ${i.owner}\n📅 ${i.targetDate}\n\n`);
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function importCSV(event) {
@@ -254,6 +263,7 @@
                 if (c.length >= 2) fleet.push({ plate: c[0], owner: c[1], phone: c[2], address: c[3], notes: c[4], targetDate: c[5] });
             }
             updateTable();
+            event.target.value = '';
         };
         reader.readAsText(file);
     }
