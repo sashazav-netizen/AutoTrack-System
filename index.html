@@ -27,8 +27,8 @@
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
         input, button { padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
         
-        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: opacity 0.2s; }
-        button:hover { opacity: 0.8; }
+        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: transform 0.1s; }
+        button:active { transform: scale(0.95); }
         .btn-add { background-color: var(--primary); }
         .btn-export { background-color: var(--success); }
         .btn-import { background-color: var(--archive); }
@@ -154,9 +154,9 @@
                     <td class="truncate" title="${item.notes}">${item.notes || ''}</td>
                     <td>${diffDays}</td>
                     <td>
-                        <button class="btn-done" onclick="moveToArchive(${index})" title="סימון כבוצע">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})" title="עריכה">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})" title="מחיקה">🗑️</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -179,8 +179,8 @@
             row.innerHTML = `
                 <td>${item.plate}</td><td>${item.owner}</td><td>${item.doneDate}</td><td class="truncate" title="${item.notes}">${item.notes}</td>
                 <td>
-                    <button class="btn-restore" onclick="restoreFromArchive(${actualIndex})" title="החזר לרשימה">↺</button>
-                    <button class="btn-del" onclick="deleteFromArchive(${actualIndex})" title="מחיקה סופית">🗑️</button>
+                    <button class="btn-restore" onclick="restoreFromArchive(${actualIndex})">↺</button>
+                    <button class="btn-del" onclick="deleteFromArchive(${actualIndex})">🗑️</button>
                 </td>
             `;
             abody.appendChild(row);
@@ -196,7 +196,7 @@
             targetDate: document.getElementById('targetDate').value,
             notes: document.getElementById('notes').value
         };
-        if(!data.plate || !data.targetDate) return alert("נא למלא לוחית זיהוי ותאריך יעד");
+        if(!data.plate || !data.targetDate) return alert("מלא לוחית ותאריך");
         const idx = fleet.findIndex(i => i.plate === data.plate);
         if(idx !== -1) fleet[idx] = data; else fleet.push(data);
         trackAction(); updateTable();
@@ -252,7 +252,7 @@
         localStorage.setItem('archiveData', JSON.stringify(archive));
     }
 
-    // פונקציית ייצוא משופרת
+    // פונקציית ייצוא אוניברסלית - עובדת בכל הדפדפנים
     function exportToCSV(isAuto = false) {
         if (!fleet.length && !archive.length) {
             if (!isAuto) alert("אין נתונים לייצוא");
@@ -260,28 +260,33 @@
         }
         
         try {
-            let csv = "\uFEFFלוחית,בעל הרכב,פלאפון,כתובת,הערות,תאריך יעד\n";
-            fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
+            let csvContent = "\uFEFFלוחית,בעל הרכב,פלאפון,כתובת,הערות,תאריך יעד\n";
+            fleet.forEach(i => {
+                csvContent += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`;
+            });
             
-            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const fileName = isAuto ? `AutoBackup_${Date.now()}.csv` : 'AutoTrack_Export.csv';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             
-            a.style.display = 'none';
-            a.href = url;
-            a.download = isAuto ? `AutoBackup_${new Date().getTime()}.csv` : 'AutoTrack_Export.csv';
-            
-            document.body.appendChild(a);
-            a.click();
-            
-            // ניקוי זיכרון
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 100);
-        } catch (err) {
-            console.error("שגיאה בייצוא:", err);
-            if (!isAuto) alert("הייצוא נכשל. נסה שוב.");
+            // פתרון מיוחד ל-Internet Explorer / Edge ישן
+            if (navigator.msSaveBlob) { 
+                navigator.msSaveBlob(blob, fileName);
+            } else {
+                // פתרון אוניברסלי ל-Chrome, Firefox, Safari
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", fileName);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        } catch (e) {
+            console.error("Export Error:", e);
+            if (!isAuto) alert("הייצוא נכשל. נסה להשתמש בדפדפן Chrome.");
         }
     }
 
@@ -290,21 +295,25 @@
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
-            const lines = e.target.result.split('\n');
-            let added = 0;
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-                const c = cols.map(v => v.replace(/"/g, ''));
-                if (c.length >= 2) {
-                    const newItem = { plate: c[0].trim(), owner: c[1]||'', phone: c[2]||'', address: c[3]||'', notes: c[4]||'', targetDate: c[5]||'' };
-                    const idx = fleet.findIndex(f => f.plate === newItem.plate);
-                    if (idx !== -1) fleet[idx] = newItem; else fleet.push(newItem);
-                    added++;
+            try {
+                const lines = e.target.result.split('\n');
+                let added = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const cols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                    const c = cols.map(v => v.replace(/"/g, ''));
+                    if (c.length >= 1) {
+                        const newItem = { plate: c[0].trim(), owner: c[1]||'', phone: c[2]||'', address: c[3]||'', notes: c[4]||'', targetDate: c[5]||'' };
+                        const idx = fleet.findIndex(f => f.plate === newItem.plate);
+                        if (idx !== -1) fleet[idx] = newItem; else fleet.push(newItem);
+                        added++;
+                    }
                 }
+                alert(`בוצע שחזור! ${added} רכבים נטענו.`);
+                updateTable();
+            } catch (err) {
+                alert("שגיאה בקריאת הקובץ. וודא שזה קובץ CSV תקין.");
             }
-            alert(`בוצע שחזור! ${added} רכבים נטענו.`);
-            updateTable();
             event.target.value = '';
         };
         reader.readAsText(file);
