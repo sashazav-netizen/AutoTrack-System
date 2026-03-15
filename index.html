@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoTrack Pro - Cloud Edition</title>
+    <title>AutoTrack Pro - Alexander Zavodisker</title>
     <style>
         :root {
             --primary: #34495e;
@@ -15,7 +15,7 @@
             --hover: #f8f9fa;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 13px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 13px; scroll-behavior: smooth; }
         .container { max-width: 1200px; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
         h1 { text-align: center; color: var(--primary); margin: 5px 0; }
@@ -23,15 +23,18 @@
         .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
         .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
-        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
+        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; font-size: 14px; }
         .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
-        
+        .action-buttons button { flex: 1; white-space: nowrap; }
+
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
         input, button { padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
         
-        button { cursor: pointer; color: white; border: none; font-weight: bold; }
+        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: background 0.2s; }
+        button:hover { opacity: 0.9; }
         .btn-add { background-color: var(--primary); }
         .btn-export { background-color: var(--success); }
+        .btn-import { background-color: var(--archive); }
         .btn-whatsapp { background-color: var(--whatsapp); }
         
         .btn-done { background-color: var(--success); padding: 5px 10px; }
@@ -41,21 +44,31 @@
 
         .table-wrapper { width: 100%; overflow-x: auto; background: white; border: 1px solid #ddd; border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 850px; }
-        th, td { padding: 10px 8px; text-align: center; border: 1px solid #eee; }
-        th { background-color: var(--primary); color: white; position: sticky; top: 0; }
+        
+        th, td { padding: 10px 8px; text-align: center; border: 1px solid #eee; vertical-align: middle; }
+        th { background-color: var(--primary); color: white; position: sticky; top: 0; z-index: 10; }
+
         tbody tr:hover { background-color: var(--hover); }
 
         .status-overdue { background-color: #ffdce0 !important; color: #c0392b; font-weight: bold; }
         .status-soon { background-color: #fff4ce !important; color: #856404; font-weight: bold; }
         .status-ok { background-color: #e6ffed !important; color: #28a745; }
 
+        .archive-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 10px; }
         footer { text-align: center; padding: 15px; color: #7f8c8d; font-size: 11px; }
+        #fileInput { display: none; }
+
+        @media (max-width: 600px) {
+            .header-controls { flex-direction: column; align-items: stretch; }
+            .action-buttons { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
 
+<div id="top"></div>
 <div class="container">
-    <h1>🚗 AutoTrack Pro Cloud</h1>
+    <h1>🚗 AutoTrack Pro</h1>
 
     <div class="stats-bar">
         <div class="stat-card" style="background: var(--primary)">פעילים: <span id="totalCount">0</span></div>
@@ -64,88 +77,56 @@
     </div>
 
     <div class="header-controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש רכב..." oninput="renderTable()">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש לפי לוחית או שם..." oninput="updateTable()">
         <div class="action-buttons">
-            <button class="btn-export" onclick="window.exportToCSV()">📊 ייצוא</button>
-            <button class="btn-whatsapp" onclick="window.sendFullBackupWhatsApp()">📱 גיבוי מלא</button>
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
+            <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
+            <button class="btn-whatsapp" onclick="sendFullBackupWhatsApp()">📱 גיבוי מלא</button>
         </div>
+        <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
     </div>
 
     <div class="form-group">
-        <input type="text" id="plate" placeholder="לוחית">
-        <input type="text" id="owner" placeholder="בעל הרכב">
+        <input type="text" id="plate" placeholder="לוחית רישוי">
+        <input type="text" id="owner" placeholder="שם בעל הרכב">
         <input type="tel" id="phone" placeholder="טלפון">
         <input type="text" id="address" placeholder="כתובת">
         <input type="date" id="targetDate">
         <input type="text" id="notes" placeholder="הערות">
-        <button class="btn-add" id="addBtn">שמור רכב +</button>
+        <button class="btn-add" onclick="addRow()">שמור רכב +</button>
     </div>
 
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>לוחית</th>
-                    <th>בעל הרכב</th>
-                    <th>טלפון</th>
+                    <th style="width: 100px;">לוחית</th>
+                    <th style="width: 120px;">בעל הרכב</th>
+                    <th style="width: 110px;">טלפון</th>
                     <th>כתובת והערות</th>
-                    <th>ימים</th>
-                    <th>פעולות</th>
+                    <th style="width: 60px;">ימים</th>
+                    <th style="width: 170px;">פעולות</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
     </div>
 
-    <div id="archiveSection" style="margin-top:20px;">
-        <h3>📦 ארכיון אחרון</h3>
-        <div id="archiveList" style="font-size: 11px; color: #666;"></div>
+    <div class="archive-section">
+        <h3>📦 ארכיון (פעולות אחרונות)</h3>
+        <div id="archiveBody" style="font-size: 11px; color: #888; text-align: right; padding: 10px;"></div>
     </div>
 </div>
 
-<footer>© 2026 Alexander Zavodisker | מחובר לענן Firebase</footer>
+<footer>
+    © 2026 Alexander Zavodisker | אלכסנדר זבודיסקר
+</footer>
 
-<script type="module">
-    // ייבוא Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script>
+    let fleet = JSON.parse(localStorage.getItem('fleetData')) || [];
+    let archive = JSON.parse(localStorage.getItem('archiveData')) || [];
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBh8ift4krwIeISMmaIk0eM5g27alD5qhw",
-        authDomain: "autotrack-pro2026.firebaseapp.com",
-        projectId: "autotrack-pro2026",
-        storageBucket: "autotrack-pro2026.firebasestorage.app",
-        messagingSenderId: "95647036319",
-        appId: "1:95647036319:web:9de7945ed5b9f350e8c3aa"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const docRef = doc(db, "fleetManager", "mainData");
-
-    let fleet = [];
-    let archive = [];
-
-    // האזנה לשינויים בענן (זמן אמת)
-    onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            fleet = data.fleet || [];
-            archive = data.archive || [];
-            renderTable();
-        }
-    });
-
-    async function saveToCloud() {
-        try {
-            await setDoc(docRef, { fleet, archive });
-        } catch (e) {
-            console.error("שגיאה בשמירה:", e);
-            alert("שגיאת סנכרון עם הענן");
-        }
-    }
-
-    window.renderTable = function() {
+    function updateTable() {
         const tbody = document.getElementById('tableBody');
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         tbody.innerHTML = '';
@@ -159,16 +140,19 @@
                 const target = new Date(item.targetDate);
                 const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
                 let statusClass = diffDays < 0 ? "status-overdue" : (diffDays <= 1 ? "status-soon" : "status-ok");
-                
-                total++; if (diffDays < 0) overdue++;
 
+                total++; if (diffDays < 0) overdue++;
+                
                 const row = document.createElement('tr');
                 row.className = statusClass;
                 row.innerHTML = `
                     <td><b>${item.plate}</b></td>
                     <td>${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td style="text-align:right">${item.address || ''}<br><small>${item.notes || ''}</small></td>
+                    <td style="text-align: right;">
+                        ${item.address ? '📍 ' + item.address : ''} 
+                        ${item.notes ? (item.address ? '<br>' : '') + '💬 ' + item.notes : ''}
+                    </td>
                     <td>${diffDays}</td>
                     <td>
                         <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})">📱</button>
@@ -185,41 +169,54 @@
         document.getElementById('overdueCount').innerText = overdue;
         document.getElementById('archiveCount').innerText = archive.length;
         
-        const arcList = document.getElementById('archiveList');
-        arcList.innerHTML = archive.slice(-3).map(a => `<div>🚗 ${a.plate} - בוצע ב: ${a.doneDate}</div>`).join('');
-    };
+        updateArchiveUI();
+        localStorage.setItem('fleetData', JSON.stringify(fleet));
+        localStorage.setItem('archiveData', JSON.stringify(archive));
+    }
 
-    document.getElementById('addBtn').onclick = async () => {
-        const plate = document.getElementById('plate').value;
+    function updateArchiveUI() {
+        const div = document.getElementById('archiveBody');
+        div.innerHTML = archive.slice(-3).reverse().map(a => `<div>🚗 ${a.plate} - בוצע ב: ${a.doneDate}</div>`).join('');
+    }
+
+    function addRow() {
+        const plate = document.getElementById('plate').value.trim();
         const date = document.getElementById('targetDate').value;
-        if(!plate || !date) return alert("מלא לוחית ותאריך");
-
+        if(!plate || !date) return alert("נא להזין לוחית ותאריך");
+        
         fleet.push({
             plate, owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             targetDate: date, notes: document.getElementById('notes').value
         });
-        await saveToCloud();
+        updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
-    };
+    }
 
-    window.deleteRow = async (index) => {
-        if(confirm("למחוק?")) {
+    function sendRowWhatsApp(index) {
+        const i = fleet[index];
+        let text = `*פרטי רכב - AutoTrack Pro*\n🚗 לוחית: *${i.plate}*\n👤 בעל: ${i.owner || '-'}\n📍 כתובת: ${i.address || '-'}\n📅 יעד: ${i.targetDate}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function sendFullBackupWhatsApp() {
+        if (!fleet.length) return alert("אין נתונים");
+        let text = "*גיבוי AutoTrack Pro*\n\n" + fleet.map(i => `🚗 *${i.plate}* | ${i.owner}`).join('\n');
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function moveToArchive(index) {
+        if(confirm("להעביר לארכיון?")) {
+            const item = fleet[index];
+            item.doneDate = new Date().toLocaleDateString('he-IL');
+            archive.push(item);
             fleet.splice(index, 1);
-            await saveToCloud();
+            updateTable();
         }
-    };
+    }
 
-    window.moveToArchive = async (index) => {
-        const item = fleet[index];
-        item.doneDate = new Date().toLocaleDateString('he-IL');
-        archive.push(item);
-        fleet.splice(index, 1);
-        await saveToCloud();
-    };
-
-    window.editRow = (index) => {
+    function editRow(index) {
         const i = fleet[index];
         document.getElementById('plate').value = i.plate;
         document.getElementById('owner').value = i.owner;
@@ -228,29 +225,42 @@
         document.getElementById('targetDate').value = i.targetDate;
         document.getElementById('notes').value = i.notes;
         fleet.splice(index, 1);
-        renderTable();
-    };
+        updateTable();
+        document.getElementById('top').scrollIntoView();
+    }
 
-    window.sendRowWhatsApp = (index) => {
-        const i = fleet[index];
-        let text = `*רכב:* ${i.plate}\n*בעל:* ${i.owner}\n*כתובת:* ${i.address}\n*יעד:* ${i.targetDate}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    };
+    function deleteRow(index) {
+        if(confirm("למחוק?")) { fleet.splice(index, 1); updateTable(); }
+    }
 
-    window.sendFullBackupWhatsApp = () => {
-        let text = fleet.map(i => `${i.plate} | ${i.owner} | ${i.targetDate}`).join('\n');
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    };
-
-    window.exportToCSV = () => {
-        let csv = "\uFEFFלוחית,בעל,תאריך\n" + fleet.map(i => `"${i.plate}","${i.owner}","${i.targetDate}"`).join('\n');
+    function exportToCSV() {
+        if (!fleet.length) return alert("אין נתונים");
+        let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
+        fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'backup.csv';
+        a.download = 'AutoTrack_Backup.csv';
         a.click();
-    };
+    }
 
+    function importCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const lines = e.target.result.split('\n');
+            for (let i = 1; i < lines.length; i++) {
+                const c = lines[i].split(',').map(v => v.replace(/"/g, ''));
+                if (c.length >= 2) fleet.push({ plate: c[0], owner: c[1], phone: c[2], address: c[3], notes: c[4], targetDate: c[5] });
+            }
+            updateTable();
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    updateTable();
 </script>
 </body>
 </html>
