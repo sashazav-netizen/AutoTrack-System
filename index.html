@@ -19,13 +19,13 @@
         
         h1 { text-align: center; color: var(--primary); margin: 5px 0; }
         .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; }
+        .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
         .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
         .search-box { flex-grow: 1; padding: 5px; border: 2px solid var(--primary); border-radius: 3px; }
 
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-        input, button { padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
+        input, button { padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
         
         button { cursor: pointer; color: white; border: none; font-weight: bold; }
         .btn-add { background-color: var(--primary); }
@@ -37,8 +37,11 @@
         .btn-restore { background-color: var(--restore); padding: 2px 6px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; text-align: center; border: 1px solid #eee; }
+        th, td { padding: 8px 4px; text-align: center; border: 1px solid #eee; }
         th { background-color: var(--primary); color: white; }
+
+        /* הגנה על עמודת כתובת והערות שלא ימתחו את הדף יותר מדי */
+        .truncate { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .status-overdue { background-color: #ffdce0; color: #c0392b; font-weight: bold; }
         .status-soon { background-color: #fff4ce; color: #856404; font-weight: bold; }
@@ -63,7 +66,7 @@
     </div>
 
     <div class="header-controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חיפוש לפי לוחית או שם..." oninput="updateTable()">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חיפוש..." oninput="updateTable()">
         <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 שחזור מגיבוי</button>
         <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
         <button class="btn-export" onclick="exportToCSV()">📊 ייצוא ידני</button>
@@ -72,7 +75,7 @@
     <div class="form-group">
         <input type="text" id="plate" placeholder="לוחית">
         <input type="text" id="owner" placeholder="שם בעל">
-        <input type="tel" id="phone" placeholder="פלאפון">
+        <input type="tel" id="phone" placeholder="טלפון">
         <input type="text" id="address" placeholder="כתובת">
         <input type="date" id="targetDate">
         <input type="text" id="notes" placeholder="הערות">
@@ -83,8 +86,9 @@
         <thead>
             <tr>
                 <th>לוחית</th>
-                <th>בעל הרכב</th>
-                <th>פלאפון</th>
+                <th>בעל</th>
+                <th>טלפון</th>
+                <th>כתובת</th>
                 <th>הערות</th>
                 <th>ימים</th>
                 <th>פעולות</th>
@@ -99,8 +103,8 @@
             <thead>
                 <tr>
                     <th>לוחית</th>
-                    <th>בעל הרכב</th>
-                    <th>תאריך סיום</th>
+                    <th>בעל</th>
+                    <th>סיום</th>
                     <th>הערות</th>
                     <th>פעולות</th>
                 </tr>
@@ -131,13 +135,9 @@
         fleet.forEach((item, index) => {
             const target = new Date(item.targetDate);
             const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-            
-            let statusClass = "status-ok";
-            if (diffDays < 0) statusClass = "status-overdue";
-            else if (diffDays <= 1) statusClass = "status-soon";
+            let statusClass = diffDays < 0 ? "status-overdue" : (diffDays <= 1 ? "status-soon" : "status-ok");
 
-            total++;
-            if (diffDays < 0) overdue++;
+            total++; if (diffDays < 0) overdue++;
 
             if (item.plate.includes(searchTerm) || (item.owner && item.owner.toLowerCase().includes(searchTerm))) {
                 const row = document.createElement('tr');
@@ -146,12 +146,13 @@
                     <td><b>${item.plate}</b></td>
                     <td>${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td>${item.notes || ''}</td>
+                    <td class="truncate" title="${item.address}">${item.address || ''}</td>
+                    <td class="truncate" title="${item.notes}">${item.notes || ''}</td>
                     <td>${diffDays}</td>
                     <td>
-                        <button class="btn-done" onclick="moveToArchive(${index})" title="בוצע">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})" title="עריכה">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})" title="מחיקה">🗑️</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -161,7 +162,6 @@
         document.getElementById('totalCount').innerText = total;
         document.getElementById('overdueCount').innerText = overdue;
         document.getElementById('archiveCount').innerText = archive.length;
-        
         updateArchiveTable();
         saveData();
     }
@@ -169,11 +169,11 @@
     function updateArchiveTable() {
         const abody = document.getElementById('archiveBody');
         abody.innerHTML = '';
-        archive.slice(-15).reverse().forEach((item, index) => {
+        archive.slice(-10).reverse().forEach((item, index) => {
             const actualIndex = archive.length - 1 - index;
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${item.plate}</td><td>${item.owner}</td><td>${item.doneDate}</td><td>${item.notes}</td>
+                <td>${item.plate}</td><td>${item.owner}</td><td>${item.doneDate}</td><td class="truncate" title="${item.notes}">${item.notes}</td>
                 <td>
                     <button class="btn-restore" onclick="restoreFromArchive(${actualIndex})">↺</button>
                     <button class="btn-del" onclick="deleteFromArchive(${actualIndex})">🗑️</button>
@@ -192,7 +192,7 @@
             targetDate: document.getElementById('targetDate').value,
             notes: document.getElementById('notes').value
         };
-        if(!data.plate || !data.targetDate) return alert("חובה לוחית ותאריך");
+        if(!data.plate || !data.targetDate) return alert("מלא לוחית ותאריך");
         const idx = fleet.findIndex(i => i.plate === data.plate);
         if(idx !== -1) fleet[idx] = data; else fleet.push(data);
         trackAction(); updateTable();
@@ -216,7 +216,7 @@
     }
 
     function deleteFromArchive(index) {
-        if(confirm("מחיקה סופית מהארכיון?")) { archive.splice(index, 1); updateTable(); }
+        if(confirm("למחוק מהארכיון?")) { archive.splice(index, 1); updateTable(); }
     }
 
     function editRow(index) {
@@ -274,7 +274,7 @@
                     added++;
                 }
             }
-            alert(`נטענו ${added} רכבים בהצלחה!`);
+            alert(`נטענו ${added} רכבים!`);
             updateTable();
             event.target.value = '';
         };
