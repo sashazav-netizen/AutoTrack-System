@@ -22,18 +22,21 @@
         .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
-        .header-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; }
-        .search-box { flex-grow: 1; padding: 6px; border: 2px solid var(--primary); border-radius: 3px; min-width: 200px; }
+        /* סידור הכפתורים והחיפוש בשורה אחת */
+        .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
+        .search-box { flex: 2; padding: 7px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
+        .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
+        .action-buttons button { flex: 1; white-space: nowrap; }
 
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
-        input, button { padding: 5px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
+        input, button { padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
         
         button { cursor: pointer; color: white; border: none; font-weight: bold; transition: opacity 0.2s; }
-        button:hover { opacity: 0.8; }
+        button:hover { opacity: 0.9; }
         .btn-add { background-color: var(--primary); }
         .btn-export { background-color: var(--success); }
         .btn-import { background-color: var(--archive); }
-        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
+        .btn-whatsapp { background-color: var(--whatsapp); }
         
         .btn-done { background-color: var(--success); padding: 2px 8px; }
         .btn-del { background-color: var(--danger); padding: 2px 8px; }
@@ -51,6 +54,12 @@
         .archive-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 10px; }
         footer { text-align: center; padding: 15px; color: #7f8c8d; font-size: 11px; }
         #fileInput { display: none; }
+
+        /* התאמה לנייד */
+        @media (max-width: 600px) {
+            .header-controls { flex-direction: column; align-items: stretch; }
+            .action-buttons { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -67,10 +76,12 @@
 
     <div class="header-controls">
         <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש רכב..." oninput="updateTable()">
-        <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 טען CSV</button>
+        <div class="action-buttons">
+            <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
+            <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
+            <button class="btn-whatsapp" onclick="sendToWhatsApp()">📱 וואטסאפ</button>
+        </div>
         <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
-        <button class="btn-export" onclick="exportToCSV()">📊 ייצוא CSV</button>
-        <button class="btn-whatsapp" onclick="sendToWhatsApp()">📱 גיבוי וואטסאפ</button>
     </div>
 
     <div class="form-group">
@@ -80,7 +91,7 @@
         <input type="text" id="address" placeholder="כתובת">
         <input type="date" id="targetDate">
         <input type="text" id="notes" placeholder="הערות">
-        <button class="btn-add" onclick="addRow()">שמור +</button>
+        <button class="btn-add" onclick="addRow()">שמור רכב +</button>
     </div>
 
     <table>
@@ -99,7 +110,7 @@
     </table>
 
     <div class="archive-section">
-        <h3>📦 ארכיון (הושלמו)</h3>
+        <h3>📦 ארכיון (הושלמו לאחרונה)</h3>
         <table>
             <tbody id="archiveBody"></tbody>
         </table>
@@ -160,7 +171,7 @@
     function updateArchiveTable() {
         const abody = document.getElementById('archiveBody');
         abody.innerHTML = '';
-        archive.slice(-5).reverse().forEach((item, index) => {
+        archive.slice(-5).reverse().forEach((item) => {
             const row = document.createElement('tr');
             row.innerHTML = `<td style="color:#888">${item.plate} - ${item.owner} (בוצע ב-${item.doneDate})</td>`;
             abody.appendChild(row);
@@ -168,15 +179,19 @@
     }
 
     function addRow() {
+        const plate = document.getElementById('plate').value.trim();
+        const date = document.getElementById('targetDate').value;
+        if(!plate || !date) return alert("מלא לוחית ותאריך");
+
         const data = {
-            plate: document.getElementById('plate').value.trim(),
+            plate: plate,
             owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
-            targetDate: document.getElementById('targetDate').value,
+            targetDate: date,
             notes: document.getElementById('notes').value
         };
-        if(!data.plate || !data.targetDate) return alert("מלא לוחית ותאריך");
+        
         fleet.push(data);
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
@@ -209,30 +224,23 @@
         if(confirm("למחוק?")) { fleet.splice(index, 1); updateTable(); }
     }
 
-    // פונקציית ייצוא קובץ CSV
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים לייצוא");
+        if (!fleet.length) return alert("אין נתונים");
         let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
         fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'AutoTrack_Backup.csv';
-        document.body.appendChild(a);
+        a.download = 'Backup_Fleet.csv';
         a.click();
-        document.body.removeChild(a);
     }
 
-    // פונקציית גיבוי לוואטסאפ - הדרך הכי בטוחה
     function sendToWhatsApp() {
-        if (!fleet.length) return alert("אין נתונים לגיבוי");
-        let text = "*גיבוי AutoTrack Pro - " + new Date().toLocaleDateString('he-IL') + "*\n\n";
-        fleet.forEach(i => {
-            text += `🚗 *${i.plate}* | ${i.owner || 'ללא שם'}\n📅 יעד: ${i.targetDate}\n📍 ${i.address || '-'}\n💬 ${i.notes || '-'}\n\n`;
-        });
-        const encodedText = encodeURIComponent(text);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+        if (!fleet.length) return alert("אין נתונים");
+        let text = "*גיבוי AutoTrack Pro*\n";
+        fleet.forEach(i => text += `🚗 ${i.plate} | ${i.owner}\n📅 ${i.targetDate}\n\n`);
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function importCSV(event) {
