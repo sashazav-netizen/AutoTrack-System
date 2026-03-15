@@ -15,8 +15,8 @@
             --whatsapp: #25d366;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 12px; scroll-behavior: smooth; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 12px; scroll-behavior: smooth; overflow-x: hidden; }
+        .container { max-width: 100%; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); box-sizing: border-box; }
         
         h1 { text-align: center; color: var(--primary); margin: 5px 0; }
         .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
@@ -42,11 +42,20 @@
         .btn-edit { background-color: #f39c12; padding: 2px 8px; }
         .btn-row-whatsapp { background-color: var(--whatsapp); padding: 2px 8px; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px 4px; text-align: center; border: 1px solid #eee; }
+        /* תיקון מתיחת הטבלה */
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; } /* Layout Fixed מונע מתיחה */
+        th, td { padding: 8px 4px; text-align: center; border: 1px solid #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         th { background-color: var(--primary); color: white; }
 
-        .truncate { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* הגדרת רוחב עמודות קבוע */
+        th:nth-child(1), td:nth-child(1) { width: 15%; } /* לוחית */
+        th:nth-child(2), td:nth-child(2) { width: 15%; } /* בעל */
+        th:nth-child(3), td:nth-child(3) { width: 15%; } /* טלפון */
+        th:nth-child(4), td:nth-child(4) { width: 25%; } /* כתובת */
+        th:nth-child(5), td:nth-child(5) { width: 10%; } /* ימים */
+        th:nth-child(6), td:nth-child(6) { width: 20%; } /* פעולות */
+
         .status-overdue { background-color: #ffdce0; color: #c0392b; font-weight: bold; }
         .status-soon { background-color: #fff4ce; color: #856404; font-weight: bold; }
         .status-ok { background-color: #e6ffed; color: #28a745; }
@@ -58,6 +67,7 @@
         @media (max-width: 600px) {
             .header-controls { flex-direction: column; align-items: stretch; }
             .action-buttons { min-width: 100%; }
+            table { font-size: 11px; }
         }
     </style>
 </head>
@@ -93,25 +103,29 @@
         <button class="btn-add" onclick="addRow()">שמור רכב +</button>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>לוחית</th>
-                <th>בעל</th>
-                <th>טלפון</th>
-                <th>כתובת</th>
-                <th>ימים</th>
-                <th>פעולות</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>לוחית</th>
+                    <th>בעל</th>
+                    <th>טלפון</th>
+                    <th>כתובת</th>
+                    <th>ימים</th>
+                    <th>פעולות</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
     <div class="archive-section">
         <h3>📦 ארכיון (אחרונים)</h3>
-        <table>
-            <tbody id="archiveBody"></tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <tbody id="archiveBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -142,10 +156,10 @@
                 const row = document.createElement('tr');
                 row.className = statusClass;
                 row.innerHTML = `
-                    <td><b>${item.plate}</b></td>
-                    <td>${item.owner || ''}</td>
+                    <td title="${item.plate}"><b>${item.plate}</b></td>
+                    <td title="${item.owner || ''}">${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td class="truncate" title="${item.address}">${item.address || ''}</td>
+                    <td title="${item.address || ''}">${item.address || ''}</td>
                     <td>${diffDays}</td>
                     <td>
                         <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})" title="שלח בוואטסאפ">📱</button>
@@ -171,7 +185,7 @@
         abody.innerHTML = '';
         archive.slice(-5).reverse().forEach((item) => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td style="color:#888">${item.plate} - ${item.owner} (בוצע ב-${item.doneDate})</td>`;
+            row.innerHTML = `<td colspan="6" style="color:#888; text-align:right;">${item.plate} - ${item.owner} (בוצע ב-${item.doneDate})</td>`;
             abody.appendChild(row);
         });
     }
@@ -181,34 +195,25 @@
         const date = document.getElementById('targetDate').value;
         if(!plate || !date) return alert("נא להזין לוחית ותאריך");
         fleet.push({
-            plate: plate,
-            owner: document.getElementById('owner').value,
+            plate: plate, owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
-            targetDate: date,
-            notes: document.getElementById('notes').value
+            targetDate: date, notes: document.getElementById('notes').value
         });
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
     }
 
-    // וואטסאפ עבור רכב ספציפי (חדש!)
     function sendRowWhatsApp(index) {
         const i = fleet[index];
-        let text = `*פרטי רכב - AutoTrack Pro*\n`;
-        text += `🚗 לוחית: *${i.plate}*\n`;
-        text += `👤 בעל הרכב: ${i.owner || '-'}\n`;
-        text += `📍 כתובת: ${i.address || '-'}\n`;
-        text += `📅 תאריך יעד: ${i.targetDate}\n`;
-        if(i.notes) text += `💬 הערות: ${i.notes}`;
-        
+        let text = `*פרטי רכב - AutoTrack Pro*\n🚗 לוחית: *${i.plate}*\n👤 בעל: ${i.owner || '-'}\n📍 כתובת: ${i.address || '-'}\n📅 יעד: ${i.targetDate}`;
+        if(i.notes) text += `\n💬 הערות: ${i.notes}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
 
-    // גיבוי מלא לוואטסאפ
     function sendFullBackupWhatsApp() {
-        if (!fleet.length) return alert("אין נתונים לגיבוי");
-        let text = "*גיבוי AutoTrack Pro - מלא*\n\n";
+        if (!fleet.length) return alert("אין נתונים");
+        let text = "*גיבוי AutoTrack Pro*\n\n";
         fleet.forEach(i => text += `🚗 *${i.plate}* | ${i.owner} | יעד: ${i.targetDate}\n`);
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
@@ -241,13 +246,12 @@
     }
 
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים לייצוא");
+        if (!fleet.length) return alert("אין נתונים");
         let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
         fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
-        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = 'AutoTrack_Backup.csv';
         a.click();
     }
