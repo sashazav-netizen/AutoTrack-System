@@ -12,6 +12,7 @@
             --success: #27ae60;
             --archive: #95a5a6;
             --whatsapp: #25d366;
+            --hover: #f8f9fa;
         }
 
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 13px; scroll-behavior: smooth; }
@@ -22,54 +23,45 @@
         .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
         .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
-        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
+        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; font-size: 14px; }
         .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
         .action-buttons button { flex: 1; white-space: nowrap; }
 
         .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
         input, button { padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
         
-        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: opacity 0.2s; }
+        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: background 0.2s; }
         button:hover { opacity: 0.9; }
         .btn-add { background-color: var(--primary); }
         .btn-export { background-color: var(--success); }
         .btn-import { background-color: var(--archive); }
         .btn-whatsapp { background-color: var(--whatsapp); }
         
-        .btn-done { background-color: var(--success); padding: 5px 10px; margin: 1px; }
-        .btn-del { background-color: var(--danger); padding: 5px 10px; margin: 1px; }
-        .btn-edit { background-color: #f39c12; padding: 5px 10px; margin: 1px; }
-        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 5px 10px; margin: 1px; }
+        .btn-done { background-color: var(--success); padding: 5px 10px; }
+        .btn-del { background-color: var(--danger); padding: 5px 10px; }
+        .btn-edit { background-color: #f39c12; padding: 5px 10px; }
+        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 5px 10px; }
 
-        /* תיקון הגלילה והצגת הנתונים */
-        .table-wrapper { 
-            width: 100%; 
-            overflow-x: auto; /* מאפשר גלילה לצדדים אם הטבלה רחבה מדי */
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
+        .table-wrapper { width: 100%; overflow-x: auto; background: white; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; min-width: 850px; }
+        
+        th, td { padding: 10px 8px; text-align: center; border: 1px solid #eee; vertical-align: middle; }
+        th { background-color: var(--primary); color: white; position: sticky; top: 0; z-index: 10; }
 
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 800px; /* מבטיח שהטבלה לא תצטופף מדי במובייל */
-        }
+        /* אפקט ריחוף לשורות */
+        tbody tr:hover { background-color: var(--hover); }
 
-        th, td { 
-            padding: 10px 8px; 
-            text-align: center; 
-            border: 1px solid #eee; 
-            word-wrap: break-word; /* מאפשר לטקסט ארוך לרדת שורה */
-            white-space: normal;  /* מבטל את ההסתרה של הטקסט */
-        }
+        /* הגדרות רוחב וזרימת טקסט */
+        .col-plate { width: 90px; white-space: nowrap; }
+        .col-owner { width: 120px; }
+        .col-phone { width: 110px; white-space: nowrap; }
+        .col-info { text-align: right; font-size: 12px; }
+        .col-days { width: 60px; }
+        .col-actions { width: 170px; }
 
-        th { background-color: var(--primary); color: white; position: sticky; top: 0; }
-
-        /* עיצוב שורות לפי סטטוס */
-        .status-overdue { background-color: #ffdce0; color: #c0392b; font-weight: bold; }
-        .status-soon { background-color: #fff4ce; color: #856404; font-weight: bold; }
-        .status-ok { background-color: #e6ffed; color: #28a745; }
+        .status-overdue { background-color: #ffdce0 !important; color: #c0392b; font-weight: bold; }
+        .status-soon { background-color: #fff4ce !important; color: #856404; font-weight: bold; }
+        .status-ok { background-color: #e6ffed !important; color: #28a745; }
 
         .archive-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 10px; }
         footer { text-align: center; padding: 15px; color: #7f8c8d; font-size: 11px; }
@@ -94,7 +86,7 @@
     </div>
 
     <div class="header-controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש רכב או בעלים..." oninput="updateTable()">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש לפי לוחית או שם..." oninput="updateTable()">
         <div class="action-buttons">
             <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
             <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
@@ -117,12 +109,12 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 100px;">לוחית</th>
-                    <th style="width: 120px;">בעל הרכב</th>
-                    <th style="width: 110px;">טלפון</th>
-                    <th>כתובת והערות</th>
-                    <th style="width: 70px;">ימים</th>
-                    <th style="width: 160px;">פעולות</th>
+                    <th class="col-plate">לוחית</th>
+                    <th class="col-owner">בעל הרכב</th>
+                    <th class="col-phone">טלפון</th>
+                    <th class="col-info">כתובת והערות</th>
+                    <th class="col-days">ימים</th>
+                    <th class="col-actions">פעולות</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -166,19 +158,19 @@
                 const row = document.createElement('tr');
                 row.className = statusClass;
                 row.innerHTML = `
-                    <td><b>${item.plate}</b></td>
-                    <td>${item.owner || ''}</td>
-                    <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td style="text-align: right; font-size: 11px;">
+                    <td class="col-plate"><b>${item.plate}</b></td>
+                    <td class="col-owner">${item.owner || ''}</td>
+                    <td class="col-phone"><a href="tel:${item.phone}">${item.phone || ''}</a></td>
+                    <td class="col-info">
                         ${item.address ? '📍 ' + item.address : ''} 
-                        ${item.notes ? '<br>💬 ' + item.notes : ''}
+                        ${item.notes ? (item.address ? '<br>' : '') + '💬 ' + item.notes : ''}
                     </td>
-                    <td>${diffDays}</td>
-                    <td>
-                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})">📱</button>
-                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
+                    <td class="col-days">${diffDays}</td>
+                    <td class="col-actions">
+                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})" title="שלח פרטים">📱</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})" title="סיים">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})" title="ערוך">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})" title="מחק">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -199,7 +191,7 @@
         archive.slice(-5).reverse().forEach((item) => {
             const row = document.createElement('tr');
             row.innerHTML = `<td colspan="6" style="color:#888; text-align:right; font-size: 11px;">
-                🚗 ${item.plate} - ${item.owner} | הושלם בתאריך: ${item.doneDate}
+                🚗 ${item.plate} - ${item.owner} | בוצע ב: ${item.doneDate}
             </td>`;
             abody.appendChild(row);
         });
@@ -208,15 +200,13 @@
     function addRow() {
         const plate = document.getElementById('plate').value.trim();
         const date = document.getElementById('targetDate').value;
-        if(!plate || !date) return alert("חובה להזין מספר לוחית ותאריך יעד");
+        if(!plate || !date) return alert("חובה להזין לוחית ותאריך");
         
         fleet.push({
-            plate: plate,
-            owner: document.getElementById('owner').value,
+            plate: plate, owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
-            targetDate: date,
-            notes: document.getElementById('notes').value
+            targetDate: date, notes: document.getElementById('notes').value
         });
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
@@ -231,7 +221,7 @@
 
     function sendFullBackupWhatsApp() {
         if (!fleet.length) return alert("אין נתונים לגיבוי");
-        let text = "*גיבוי AutoTrack Pro - רשימה מלאה*\n\n";
+        let text = "*גיבוי AutoTrack Pro*\n\n";
         fleet.forEach(i => text += `🚗 *${i.plate}* | ${i.owner} | יעד: ${i.targetDate}\n`);
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
@@ -260,11 +250,11 @@
     }
 
     function deleteRow(index) {
-        if(confirm("למחוק את הרכב מהרשימה?")) { fleet.splice(index, 1); updateTable(); }
+        if(confirm("למחוק את הרכב?")) { fleet.splice(index, 1); updateTable(); }
     }
 
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים לייצוא");
+        if (!fleet.length) return alert("אין נתונים");
         let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
         fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
