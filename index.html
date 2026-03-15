@@ -11,24 +11,23 @@
             --warning: #f1c40f;
             --success: #27ae60;
             --archive: #95a5a6;
-            --restore: #3498db;
             --whatsapp: #25d366;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 12px; scroll-behavior: smooth; overflow-x: hidden; }
-        .container { max-width: 100%; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 13px; scroll-behavior: smooth; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
         h1 { text-align: center; color: var(--primary); margin: 5px 0; }
         .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
         .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
         
         .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
-        .search-box { flex: 2; padding: 7px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
+        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; }
         .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
         .action-buttons button { flex: 1; white-space: nowrap; }
 
-        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
-        input, button { padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 12px; }
+        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
+        input, button { padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
         
         button { cursor: pointer; color: white; border: none; font-weight: bold; transition: opacity 0.2s; }
         button:hover { opacity: 0.9; }
@@ -37,25 +36,37 @@
         .btn-import { background-color: var(--archive); }
         .btn-whatsapp { background-color: var(--whatsapp); }
         
-        .btn-done { background-color: var(--success); padding: 2px 8px; }
-        .btn-del { background-color: var(--danger); padding: 2px 8px; }
-        .btn-edit { background-color: #f39c12; padding: 2px 8px; }
-        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 2px 8px; }
+        .btn-done { background-color: var(--success); padding: 5px 10px; margin: 1px; }
+        .btn-del { background-color: var(--danger); padding: 5px 10px; margin: 1px; }
+        .btn-edit { background-color: #f39c12; padding: 5px 10px; margin: 1px; }
+        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 5px 10px; margin: 1px; }
 
-        /* תיקון מתיחת הטבלה */
-        .table-container { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; } /* Layout Fixed מונע מתיחה */
-        th, td { padding: 8px 4px; text-align: center; border: 1px solid #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        th { background-color: var(--primary); color: white; }
+        /* תיקון הגלילה והצגת הנתונים */
+        .table-wrapper { 
+            width: 100%; 
+            overflow-x: auto; /* מאפשר גלילה לצדדים אם הטבלה רחבה מדי */
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
 
-        /* הגדרת רוחב עמודות קבוע */
-        th:nth-child(1), td:nth-child(1) { width: 15%; } /* לוחית */
-        th:nth-child(2), td:nth-child(2) { width: 15%; } /* בעל */
-        th:nth-child(3), td:nth-child(3) { width: 15%; } /* טלפון */
-        th:nth-child(4), td:nth-child(4) { width: 25%; } /* כתובת */
-        th:nth-child(5), td:nth-child(5) { width: 10%; } /* ימים */
-        th:nth-child(6), td:nth-child(6) { width: 20%; } /* פעולות */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 800px; /* מבטיח שהטבלה לא תצטופף מדי במובייל */
+        }
 
+        th, td { 
+            padding: 10px 8px; 
+            text-align: center; 
+            border: 1px solid #eee; 
+            word-wrap: break-word; /* מאפשר לטקסט ארוך לרדת שורה */
+            white-space: normal;  /* מבטל את ההסתרה של הטקסט */
+        }
+
+        th { background-color: var(--primary); color: white; position: sticky; top: 0; }
+
+        /* עיצוב שורות לפי סטטוס */
         .status-overdue { background-color: #ffdce0; color: #c0392b; font-weight: bold; }
         .status-soon { background-color: #fff4ce; color: #856404; font-weight: bold; }
         .status-ok { background-color: #e6ffed; color: #28a745; }
@@ -67,7 +78,6 @@
         @media (max-width: 600px) {
             .header-controls { flex-direction: column; align-items: stretch; }
             .action-buttons { min-width: 100%; }
-            table { font-size: 11px; }
         }
     </style>
 </head>
@@ -84,7 +94,7 @@
     </div>
 
     <div class="header-controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש רכב..." oninput="updateTable()">
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש רכב או בעלים..." oninput="updateTable()">
         <div class="action-buttons">
             <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
             <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
@@ -94,8 +104,8 @@
     </div>
 
     <div class="form-group">
-        <input type="text" id="plate" placeholder="לוחית">
-        <input type="text" id="owner" placeholder="שם בעל">
+        <input type="text" id="plate" placeholder="לוחית רישוי">
+        <input type="text" id="owner" placeholder="שם בעל הרכב">
         <input type="tel" id="phone" placeholder="טלפון">
         <input type="text" id="address" placeholder="כתובת">
         <input type="date" id="targetDate">
@@ -103,16 +113,16 @@
         <button class="btn-add" onclick="addRow()">שמור רכב +</button>
     </div>
 
-    <div class="table-container">
+    <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>לוחית</th>
-                    <th>בעל</th>
-                    <th>טלפון</th>
-                    <th>כתובת</th>
-                    <th>ימים</th>
-                    <th>פעולות</th>
+                    <th style="width: 100px;">לוחית</th>
+                    <th style="width: 120px;">בעל הרכב</th>
+                    <th style="width: 110px;">טלפון</th>
+                    <th>כתובת והערות</th>
+                    <th style="width: 70px;">ימים</th>
+                    <th style="width: 160px;">פעולות</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -120,8 +130,8 @@
     </div>
 
     <div class="archive-section">
-        <h3>📦 ארכיון (אחרונים)</h3>
-        <div class="table-container">
+        <h3>📦 ארכיון (פעולות אחרונות)</h3>
+        <div class="table-wrapper">
             <table>
                 <tbody id="archiveBody"></tbody>
             </table>
@@ -156,16 +166,19 @@
                 const row = document.createElement('tr');
                 row.className = statusClass;
                 row.innerHTML = `
-                    <td title="${item.plate}"><b>${item.plate}</b></td>
-                    <td title="${item.owner || ''}">${item.owner || ''}</td>
+                    <td><b>${item.plate}</b></td>
+                    <td>${item.owner || ''}</td>
                     <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td title="${item.address || ''}">${item.address || ''}</td>
+                    <td style="text-align: right; font-size: 11px;">
+                        ${item.address ? '📍 ' + item.address : ''} 
+                        ${item.notes ? '<br>💬 ' + item.notes : ''}
+                    </td>
                     <td>${diffDays}</td>
                     <td>
-                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})" title="שלח בוואטסאפ">📱</button>
-                        <button class="btn-done" onclick="moveToArchive(${index})" title="סיים">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})" title="ערוך">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})" title="מחק">🗑️</button>
+                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})">📱</button>
+                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
+                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
+                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -185,7 +198,9 @@
         abody.innerHTML = '';
         archive.slice(-5).reverse().forEach((item) => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="6" style="color:#888; text-align:right;">${item.plate} - ${item.owner} (בוצע ב-${item.doneDate})</td>`;
+            row.innerHTML = `<td colspan="6" style="color:#888; text-align:right; font-size: 11px;">
+                🚗 ${item.plate} - ${item.owner} | הושלם בתאריך: ${item.doneDate}
+            </td>`;
             abody.appendChild(row);
         });
     }
@@ -193,12 +208,15 @@
     function addRow() {
         const plate = document.getElementById('plate').value.trim();
         const date = document.getElementById('targetDate').value;
-        if(!plate || !date) return alert("נא להזין לוחית ותאריך");
+        if(!plate || !date) return alert("חובה להזין מספר לוחית ותאריך יעד");
+        
         fleet.push({
-            plate: plate, owner: document.getElementById('owner').value,
+            plate: plate,
+            owner: document.getElementById('owner').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
-            targetDate: date, notes: document.getElementById('notes').value
+            targetDate: date,
+            notes: document.getElementById('notes').value
         });
         updateTable();
         document.querySelectorAll('.form-group input').forEach(i => i.value = '');
@@ -212,8 +230,8 @@
     }
 
     function sendFullBackupWhatsApp() {
-        if (!fleet.length) return alert("אין נתונים");
-        let text = "*גיבוי AutoTrack Pro*\n\n";
+        if (!fleet.length) return alert("אין נתונים לגיבוי");
+        let text = "*גיבוי AutoTrack Pro - רשימה מלאה*\n\n";
         fleet.forEach(i => text += `🚗 *${i.plate}* | ${i.owner} | יעד: ${i.targetDate}\n`);
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
     }
@@ -242,11 +260,11 @@
     }
 
     function deleteRow(index) {
-        if(confirm("למחוק?")) { fleet.splice(index, 1); updateTable(); }
+        if(confirm("למחוק את הרכב מהרשימה?")) { fleet.splice(index, 1); updateTable(); }
     }
 
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים");
+        if (!fleet.length) return alert("אין נתונים לייצוא");
         let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
         fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
