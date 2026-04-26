@@ -6,261 +6,895 @@
     <title>AutoTrack Pro - Alexander Zavodisker</title>
     <style>
         :root {
-            --primary: #34495e;
+            --bg: #0f1724;
+            --card: #1a2433;
+            --primary: #2c3e50;
+            --accent: #f39c12;
+            --whatsapp: #25d366;
+            --success: #27ae60;
             --danger: #e74c3c;
             --warning: #f1c40f;
-            --success: #27ae60;
-            --archive: #95a5a6;
-            --whatsapp: #25d366;
-            --hover: #f8f9fa;
+            --text: #e0e6ed;
+            --border: #2c3e50;
+            --form-bg: #1e2a38;
+            --field-bg: #253248;
+            --badge-bg: #2c3e50;
+            --hover-row: #253248;
+            --edit-bg: #1a324a;
+            --edit-border: #3498db;
+            --radius: 12px;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #e9ecef; margin: 5px; font-size: 13px; scroll-behavior: smooth; }
-        .container { max-width: 1200px; margin: auto; background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
-        h1 { text-align: center; color: var(--primary); margin: 5px 0; }
-        .stats-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
-        .stat-card { padding: 5px 15px; border-radius: 4px; color: white; font-weight: bold; min-width: 80px; text-align: center; }
-        
-        .header-controls { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 8px; }
-        .search-box { flex: 2; padding: 8px; border: 2px solid var(--primary); border-radius: 3px; min-width: 150px; font-size: 14px; }
-        .action-buttons { flex: 3; display: flex; gap: 5px; min-width: 300px; }
-        .action-buttons button { flex: 1; white-space: nowrap; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 5px; background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ffeeba; }
-        input, button { padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-size: 13px; }
-        
-        button { cursor: pointer; color: white; border: none; font-weight: bold; transition: background 0.2s; }
-        button:hover { opacity: 0.9; }
-        .btn-add { background-color: var(--primary); }
-        .btn-export { background-color: var(--success); }
-        .btn-import { background-color: var(--archive); }
-        .btn-whatsapp { background-color: var(--whatsapp); }
-        
-        .btn-done { background-color: var(--success); padding: 5px 10px; }
-        .btn-del { background-color: var(--danger); padding: 5px 10px; }
-        .btn-edit { background-color: #f39c12; padding: 5px 10px; }
-        .btn-row-whatsapp { background-color: var(--whatsapp); padding: 5px 10px; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            padding: 15px;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-        .table-wrapper { width: 100%; overflow-x: auto; background: white; border: 1px solid #ddd; border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; min-width: 850px; }
-        
-        th, td { padding: 10px 8px; text-align: center; border: 1px solid #eee; vertical-align: middle; }
-        th { background-color: var(--primary); color: white; position: sticky; top: 0; z-index: 10; }
+        .app-container { width: 100%; max-width: 1200px; }
 
-        tbody tr:hover { background-color: var(--hover); }
+        .main-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
 
-        .status-overdue { background-color: #ffdce0 !important; color: #c0392b; font-weight: bold; }
-        .status-soon { background-color: #fff4ce !important; color: #856404; font-weight: bold; }
-        .status-ok { background-color: #e6ffed !important; color: #28a745; }
+        .main-title {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f39c12, #e74c3c, #3498db, #27ae60);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 1px;
+        }
+        .main-title .car-icon { font-size: 42px; }
 
-        .archive-section { margin-top: 30px; border-top: 2px solid #ccc; padding-top: 10px; }
-        footer { text-align: center; padding: 15px; color: #7f8c8d; font-size: 11px; }
-        #fileInput { display: none; }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        @media (max-width: 600px) {
-            .header-controls { flex-direction: column; align-items: stretch; }
-            .action-buttons { min-width: 100%; }
+        .save-indicator {
+            text-align: center;
+            font-size: 12px;
+            margin-bottom: 15px;
+            color: #27ae60;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .save-indicator.show { opacity: 1; }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-weight: 600;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            font-size: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .search-wrapper { flex: 3; min-width: 200px; }
+        .search-wrapper input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            font-size: 14px;
+            background: var(--field-bg);
+            color: var(--text);
+            transition: 0.2s;
+        }
+        .search-wrapper input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(243,156,18,0.2);
+        }
+
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            background: var(--field-bg);
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .btns-group { display: flex; flex-wrap: wrap; gap: 8px; flex: 2; }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            color: white;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+
+        .btn-save { background: #f39c12; }
+        .btn-export { background: var(--success); }
+        .btn-import { background: #5d6d7e; }
+        .btn-whatsapp { background: var(--whatsapp); }
+        .btn-add { background: var(--primary); padding: 14px 28px; font-size: 15px; }
+        .btn-update { background: #2980b9; padding: 14px 28px; font-size: 15px; }
+        .btn-cancel { background: #95a5a6; padding: 14px 28px; font-size: 15px; }
+
+        .form-section {
+            background: var(--form-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .field-group { display: flex; flex-direction: column; gap: 4px; }
+        .field-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #a0aab5;
+            letter-spacing: 0.5px;
+        }
+        .field-group input {
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--field-bg);
+            font-size: 14px;
+            color: var(--text);
+            transition: 0.2s;
+            width: 100%;
+        }
+        .field-group input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(243,156,18,0.15);
+        }
+        ::placeholder { color: #8e9aaf; opacity: 1; }
+
+        .form-buttons { display: flex; gap: 6px; align-self: end; }
+
+        .table-section {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            background: var(--card);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        th {
+            background: #1e2a38;
+            color: white;
+            padding: 14px 8px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            position: sticky;
+            top: 0;
+        }
+        th:hover { background: #2c3e50; }
+
+        td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tbody tr:hover { background: var(--hover-row); }
+
+        .status-overdue { background: #3e1a1a !important; color: #e74c3c; font-weight: 600; }
+        .status-soon { background: #3e3520 !important; color: #f1c40f; font-weight: 600; }
+        .status-ok { background: #1a3e2a !important; color: #27ae60; }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            display: inline-block;
+            min-width: 45px;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: 0.2s;
+            color: var(--text);
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); }
+        .btn-icon.del:hover { color: var(--danger); }
+        .btn-icon.done:hover { color: var(--success); }
+        .btn-icon.edit:hover { color: #f39c12; }
+        .btn-icon.whatsapp:hover { color: var(--whatsapp); }
+
+        .archive-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+
+        .archive-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e2a38;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--card);
+            color: var(--text);
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            font-size: 18px;
+            max-width: 420px;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .modal-box .modal-close {
+            align-self: center;
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .modal-box .modal-close:hover { background: #c0392b; transform: scale(1.03); }
+
+        #bulkActions {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: var(--form-bg);
+            padding: 8px 14px;
+            border-radius: 20px;
+        }
+        #bulkActions.visible { display: flex; }
+
+        footer { text-align: center; color: #95a5a6; font-size: 11px; margin-top: 10px; }
+
+        @media (max-width: 700px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .form-buttons { grid-column: span 2; justify-content: center; }
+        }
+        @media (max-width: 500px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-buttons { grid-column: span 1; }
+            .controls-row { flex-direction: column; align-items: stretch; }
+        }
+
+        @media print {
+            button, .form-section, .controls-row, .archive-section, footer, .stats-bar, #bulkActions, input[type="checkbox"] { display: none !important; }
+            body { background: white; }
+            .main-card { box-shadow: none; }
         }
     </style>
 </head>
 <body>
+<div class="app-container">
+    <div class="main-card">
+        <h1 class="main-title">
+            <span class="car-icon">🚘</span> AutoTrack Pro
+        </h1>
 
-<div id="top"></div>
-<div class="container">
-    <h1>🚗 AutoTrack Pro</h1>
+        <div class="save-indicator" id="saveIndicator">💾 נשמר אוטומטית</div>
 
-    <div class="stats-bar">
-        <div class="stat-card" style="background: var(--primary)">פעילים: <span id="totalCount">0</span></div>
-        <div class="stat-card" style="background: var(--danger)">חריגות: <span id="overdueCount">0</span></div>
-        <div class="stat-card" style="background: var(--archive)">ארכיון: <span id="archiveCount">0</span></div>
-    </div>
-
-    <div class="header-controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="🔍 חפש לפי לוחית או שם..." oninput="updateTable()">
-        <div class="action-buttons">
-            <button class="btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
-            <button class="btn-export" onclick="exportToCSV()">📊 ייצוא</button>
-            <button class="btn-whatsapp" onclick="sendFullBackupWhatsApp()">📱 גיבוי מלא</button>
+        <div class="stats-bar">
+            <div class="stat-card">📋 פעילים: <span id="totalCount">0</span></div>
+            <div class="stat-card">⚠️ חריגות: <span id="overdueCount">0</span></div>
+            <div class="stat-card">⏳ בקרוב: <span id="soonCount">0</span></div>
+            <div class="stat-card">📦 ארכיון: <span id="archiveCount">0</span></div>
         </div>
-        <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)">
-    </div>
 
-    <div class="form-group">
-        <input type="text" id="plate" placeholder="לוחית רישוי">
-        <input type="text" id="owner" placeholder="שם בעל הרכב">
-        <input type="tel" id="phone" placeholder="טלפון">
-        <input type="text" id="address" placeholder="כתובת">
-        <input type="date" id="targetDate">
-        <input type="text" id="notes" placeholder="הערות">
-        <button class="btn-add" onclick="addRow()">שמור רכב +</button>
-    </div>
+        <div class="controls-row">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="🔍 חיפוש לפי לוחית, בעל, טלפון..." oninput="render()">
+            </div>
+            <select id="statusFilter" class="filter-select" onchange="render()">
+                <option value="all">הכל</option>
+                <option value="overdue">חריגים</option>
+                <option value="soon">בקרוב</option>
+                <option value="ok">בסדר</option>
+            </select>
+            <div class="btns-group">
+                <button class="btn btn-import" onclick="document.getElementById('fileInput').click()">📂 ייבוא</button>
+                <button class="btn btn-export" onclick="exportToCSV()">📊 ייצוא CSV</button>
+                <button class="btn btn-save" onclick="manualSave()">💾 שמור גיבוי</button>
+                <button class="btn btn-whatsapp" onclick="sendFullBackupWhatsApp()">📱 גיבוי וואטסאפ</button>
+            </div>
+            <input type="file" id="fileInput" accept=".csv" onchange="importCSV(event)" hidden>
+        </div>
 
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 100px;">לוחית</th>
-                    <th style="width: 120px;">בעל הרכב</th>
-                    <th style="width: 110px;">טלפון</th>
-                    <th>כתובת והערות</th>
-                    <th style="width: 60px;">ימים</th>
-                    <th style="width: 170px;">פעולות</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        <div id="bulkActions">
+            <strong id="selectedCount">0 נבחרו</strong>
+            <button class="btn btn-export" onclick="bulkMoveToArchive()">📦 העבר לארכיון</button>
+            <button class="btn" style="background:#c0392b" onclick="bulkDelete()">🗑️ מחק</button>
+            <button class="btn" style="background:#34495e" onclick="selectAll()">✅ בחר הכל</button>
+            <button class="btn" style="background:#34495e" onclick="deselectAll()">⬜ בטל</button>
+        </div>
+
+        <div class="form-section" id="formSection">
+            <div class="form-grid">
+                <div class="field-group">
+                    <label>🚗 לוחית רישוי</label>
+                    <input type="text" id="plate" placeholder="IL-123-456">
+                </div>
+                <div class="field-group">
+                    <label>👤 בעל הרכב</label>
+                    <input type="text" id="owner" placeholder="ישראל ישראלי">
+                </div>
+                <div class="field-group">
+                    <label>📞 טלפון</label>
+                    <input type="tel" id="phone" placeholder="050-1234567">
+                </div>
+                <div class="field-group">
+                    <label>📍 כתובת</label>
+                    <input type="text" id="address" placeholder="רחוב, עיר">
+                </div>
+                <div class="field-group">
+                    <label>📅 תאריך יעד</label>
+                    <input type="date" id="targetDate">
+                </div>
+                <div class="field-group">
+                    <label>💬 הערות</label>
+                    <input type="text" id="notes" placeholder="הערות נוספות">
+                </div>
+                <div class="form-buttons">
+                    <button class="btn btn-add" id="btnSave" onclick="saveRow()">➕ שמור רכב</button>
+                    <button class="btn btn-update" id="btnUpdate" style="display:none" onclick="updateRow()">✏️ עדכן</button>
+                    <button class="btn btn-cancel" id="btnCancel" style="display:none" onclick="cancelEdit()">❌ ביטול</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px"><input type="checkbox" id="selectAllCheckbox" onchange="toggleAllCheckboxes(this)"></th>
+                        <th onclick="setSort('plate')">לוחית <span id="sortIcon_plate"></span></th>
+                        <th onclick="setSort('owner')">בעל <span id="sortIcon_owner"></span></th>
+                        <th onclick="setSort('phone')">טלפון <span id="sortIcon_phone"></span></th>
+                        <th onclick="setSort('address')">כתובת / הערות <span id="sortIcon_address"></span></th>
+                        <th onclick="setSort('diffDays')">ימים <span id="sortIcon_diffDays"></span></th>
+                        <th>פעולות</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="archive-section">
-        <h3>📦 ארכיון (פעולות אחרונות)</h3>
-        <div id="archiveBody" style="font-size: 11px; color: #888; text-align: right; padding: 10px;"></div>
+        <h3 style="margin-bottom:10px">📦 ארכיון</h3>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button class="btn" style="background:#3498db" onclick="restoreAllArchive()">🔁 שחזר הכל</button>
+            <button class="btn" style="background:#e74c3c" onclick="clearArchive()">🗑️ נקה ארכיון</button>
+        </div>
+        <div class="archive-scroll">
+            <table style="min-width:500px">
+                <thead><tr><th>לוחית</th><th>בעל</th><th>תאריך יעד</th><th>בוצע ב</th><th>פעולה</th></tr></thead>
+                <tbody id="archiveTableBody"></tbody>
+            </table>
+        </div>
+        <div id="archiveEmpty" style="text-align:center; padding:12px; color:#888">הארכיון ריק</div>
+    </div>
+    <footer>© 2026 Alexander Zavodisker | אלכסנדר זבודיסקר</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <span id="modalText"></span>
+        <button class="modal-close" onclick="hideModal()">סגור ✖️</button>
     </div>
 </div>
 
-<footer>
-    © 2026 Alexander Zavodisker | אלכסנדר זבודיסקר
-</footer>
-
 <script>
-    let fleet = JSON.parse(localStorage.getItem('fleetData')) || [];
-    let archive = JSON.parse(localStorage.getItem('archiveData')) || [];
+    // ====== State ======
+    const STORAGE_KEY = 'fleetData_v2';
+    const ARCHIVE_KEY = 'archiveData_v2';
 
-    function updateTable() {
-        const tbody = document.getElementById('tableBody');
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        tbody.innerHTML = '';
-        const today = new Date();
-        today.setHours(0,0,0,0);
+    let state = {
+        fleet: [],
+        archive: [],
+        editIndex: null,
+        sortBy: null,
+        sortAsc: true
+    };
 
-        let total = 0, overdue = 0;
-
-        fleet.forEach((item, index) => {
-            if (item.plate.includes(searchTerm) || (item.owner && item.owner.toLowerCase().includes(searchTerm))) {
-                const target = new Date(item.targetDate);
-                const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-                let statusClass = diffDays < 0 ? "status-overdue" : (diffDays <= 1 ? "status-soon" : "status-ok");
-
-                total++; if (diffDays < 0) overdue++;
-                
-                const row = document.createElement('tr');
-                row.className = statusClass;
-                row.innerHTML = `
-                    <td><b>${item.plate}</b></td>
-                    <td>${item.owner || ''}</td>
-                    <td><a href="tel:${item.phone}">${item.phone || ''}</a></td>
-                    <td style="text-align: right;">
-                        ${item.address ? '📍 ' + item.address : ''} 
-                        ${item.notes ? (item.address ? '<br>' : '') + '💬 ' + item.notes : ''}
-                    </td>
-                    <td>${diffDays}</td>
-                    <td>
-                        <button class="btn-row-whatsapp" onclick="sendRowWhatsApp(${index})">📱</button>
-                        <button class="btn-done" onclick="moveToArchive(${index})">✓</button>
-                        <button class="btn-edit" onclick="editRow(${index})">✏️</button>
-                        <button class="btn-del" onclick="deleteRow(${index})">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            }
-        });
-
-        document.getElementById('totalCount').innerText = total;
-        document.getElementById('overdueCount').innerText = overdue;
-        document.getElementById('archiveCount').innerText = archive.length;
-        
-        updateArchiveUI();
-        localStorage.setItem('fleetData', JSON.stringify(fleet));
-        localStorage.setItem('archiveData', JSON.stringify(archive));
+    // ====== Init ======
+    function loadState() {
+        try { state.fleet = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) { state.fleet = []; }
+        try { state.archive = JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []; } catch(e) { state.archive = []; }
     }
 
-    function updateArchiveUI() {
-        const div = document.getElementById('archiveBody');
-        div.innerHTML = archive.slice(-3).reverse().map(a => `<div>🚗 ${a.plate} - בוצע ב: ${a.doneDate}</div>`).join('');
+    function saveFleet() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.fleet)); }
+    function saveArchive() { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(state.archive)); }
+
+    function flashSaveIndicator() {
+        const el = document.getElementById('saveIndicator');
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 2000);
     }
 
-    function addRow() {
-        const plate = document.getElementById('plate').value.trim();
-        const date = document.getElementById('targetDate').value;
-        if(!plate || !date) return alert("נא להזין לוחית ותאריך");
-        
-        fleet.push({
-            plate, owner: document.getElementById('owner').value,
-            phone: document.getElementById('phone').value,
-            address: document.getElementById('address').value,
-            targetDate: date, notes: document.getElementById('notes').value
-        });
-        updateTable();
-        document.querySelectorAll('.form-group input').forEach(i => i.value = '');
+    function manualSave() {
+        saveFleet();
+        saveArchive();
+        showToast('הנתונים נשמרו בהצלחה 💾');
+        flashSaveIndicator();
     }
 
-    function sendRowWhatsApp(index) {
-        const i = fleet[index];
-        let text = `*פרטי רכב - AutoTrack Pro*\n🚗 לוחית: *${i.plate}*\n👤 בעל: ${i.owner || '-'}\n📍 כתובת: ${i.address || '-'}\n📅 יעד: ${i.targetDate}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    function getToday() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+    function calcDiffDays(dateStr) {
+        const t = new Date(dateStr); t.setHours(0,0,0,0);
+        return Math.ceil((t - getToday()) / (1000*60*60*24));
     }
 
-    function sendFullBackupWhatsApp() {
-        if (!fleet.length) return alert("אין נתונים");
-        let text = "*גיבוי AutoTrack Pro*\n\n" + fleet.map(i => `🚗 *${i.plate}* | ${i.owner}`).join('\n');
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    function escapeHTML(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function escapeCSV(v) {
+        if (!v) return '';
+        const s = String(v);
+        return (s.includes(',')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s;
     }
 
-    function moveToArchive(index) {
-        if(confirm("להעביר לארכיון?")) {
-            const item = fleet[index];
-            item.doneDate = new Date().toLocaleDateString('he-IL');
-            archive.push(item);
-            fleet.splice(index, 1);
-            updateTable();
+    function parseCSVLine(line) {
+        const res = []; let cur = '', inQ = false;
+        for(let ch of line) {
+            if(inQ) { if(ch==='"') inQ=false; else cur+=ch; }
+            else { if(ch==='"') inQ=true; else if(ch===',') { res.push(cur.trim()); cur=''; } else cur+=ch; }
+        }
+        res.push(cur.trim());
+        return res;
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._tid);
+        t._tid = setTimeout(()=>t.classList.remove('show'), 2500);
+    }
+
+    function showModal(msg) {
+        document.getElementById('modalText').textContent = msg;
+        document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function hideModal() {
+        document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    function setFormMode(mode) {
+        const form = document.getElementById('formSection');
+        const save = document.getElementById('btnSave');
+        const upd = document.getElementById('btnUpdate');
+        const cancel = document.getElementById('btnCancel');
+        if (mode === 'edit') {
+            form.style.background = '#1a324a';
+            form.style.borderColor = '#3498db';
+            save.style.display = 'none';
+            upd.style.display = '';
+            cancel.style.display = '';
+        } else {
+            form.style.background = '';
+            form.style.borderColor = '';
+            save.style.display = '';
+            upd.style.display = 'none';
+            cancel.style.display = 'none';
         }
     }
 
-    function editRow(index) {
-        const i = fleet[index];
-        document.getElementById('plate').value = i.plate;
-        document.getElementById('owner').value = i.owner;
-        document.getElementById('phone').value = i.phone;
-        document.getElementById('address').value = i.address;
-        document.getElementById('targetDate').value = i.targetDate;
-        document.getElementById('notes').value = i.notes;
-        fleet.splice(index, 1);
-        updateTable();
-        document.getElementById('top').scrollIntoView();
+    function clearForm() {
+        ['plate','owner','phone','address','targetDate','notes'].forEach(id => document.getElementById(id).value = '');
+        state.editIndex = null;
+        setFormMode('add');
     }
 
+    // ====== Render ======
+    function render() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        let filtered = [...state.fleet];
+        if (search) {
+            filtered = filtered.filter(i => 
+                (i.plate||'').toLowerCase().includes(search) ||
+                (i.owner||'').toLowerCase().includes(search) ||
+                (i.phone||'').toLowerCase().includes(search) ||
+                (i.address||'').toLowerCase().includes(search) ||
+                (i.notes||'').toLowerCase().includes(search)
+            );
+        }
+        if (status !== 'all') {
+            filtered = filtered.filter(i => {
+                const d = calcDiffDays(i.targetDate);
+                if (status==='overdue') return d<0;
+                if (status==='soon') return d>=0 && d<=1;
+                return d>1;
+            });
+        }
+
+        if (state.sortBy) {
+            filtered.sort((a,b) => {
+                let va, vb;
+                switch(state.sortBy) {
+                    case 'plate': va = a.plate||''; vb = b.plate||''; break;
+                    case 'owner': va = a.owner||''; vb = b.owner||''; break;
+                    case 'phone': va = a.phone||''; vb = b.phone||''; break;
+                    case 'address': va = (a.address||'')+(a.notes||''); vb = (b.address||'')+(b.notes||''); break;
+                    case 'diffDays': va = calcDiffDays(a.targetDate); vb = calcDiffDays(b.targetDate); break;
+                    default: return 0;
+                }
+                if (typeof va === 'number') return state.sortAsc ? va-vb : vb-va;
+                return state.sortAsc ? va.localeCompare(vb,'he') : vb.localeCompare(va,'he');
+            });
+        }
+
+        document.getElementById('totalCount').textContent = state.fleet.length;
+        document.getElementById('overdueCount').textContent = state.fleet.filter(i=>calcDiffDays(i.targetDate)<0).length;
+        document.getElementById('soonCount').textContent = state.fleet.filter(i=>{const d=calcDiffDays(i.targetDate); return d>=0&&d<=1;}).length;
+        document.getElementById('archiveCount').textContent = state.archive.length;
+
+        filtered.forEach(item => {
+            const idx = state.fleet.indexOf(item);
+            const diff = calcDiffDays(item.targetDate);
+            const cls = diff<0 ? 'status-overdue' : (diff<=1 ? 'status-soon' : 'status-ok');
+            const row = document.createElement('tr');
+            row.className = cls;
+            row.innerHTML = `
+                <td><input type='checkbox' class='row-checkbox' data-index='${idx}' onchange='updateBulkActions()'></td>
+                <td><strong>${escapeHTML(item.plate)}</strong></td>
+                <td>${escapeHTML(item.owner||'')}</td>
+                <td><a href="tel:${escapeHTML(item.phone)}" style="color:inherit">${escapeHTML(item.phone||'')}</a></td>
+                <td style="text-align:right">${item.address?'📍 '+escapeHTML(item.address):''} ${item.notes? (item.address?'<br>':'')+'💬 '+escapeHTML(item.notes):''}</td>
+                <td><span class="badge">${diff}</span></td>
+                <td>
+                    <span class="btn-icon whatsapp" onclick="sendRowWhatsApp(${idx})" title="וואטסאפ">📱</span>
+                    <span class="btn-icon done" onclick="moveToArchive(${idx})" title="בוצע">✓</span>
+                    <span class="btn-icon edit" onclick="editRow(${idx})" title="עריכה">✏️</span>
+                    <span class="btn-icon del" onclick="deleteRow(${idx})" title="מחק">🗑️</span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        updateBulkActions();
+        renderArchive();
+        saveFleet(); saveArchive();
+        flashSaveIndicator();
+        updateSortIcons();
+    }
+
+    function updateSortIcons() {
+        ['plate','owner','phone','address','diffDays'].forEach(col => {
+            const el = document.getElementById('sortIcon_'+col);
+            if(el) el.textContent = state.sortBy===col ? (state.sortAsc?'▲':'▼') : '';
+        });
+    }
+
+    function renderArchive() {
+        const tbody = document.getElementById('archiveTableBody');
+        const empty = document.getElementById('archiveEmpty');
+        tbody.innerHTML = '';
+        if (!state.archive.length) { empty.style.display='block'; return; }
+        empty.style.display='none';
+        [...state.archive].reverse().forEach((item, revIdx) => {
+            const idx = state.archive.length - 1 - revIdx;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><b>${escapeHTML(item.plate)}</b></td>
+                <td>${escapeHTML(item.owner||'')}</td>
+                <td>${escapeHTML(item.targetDate||'')}</td>
+                <td>${escapeHTML(item.doneDate||'')}</td>
+                <td><button class="btn" style="background:#3498db; padding:4px 12px" onclick="restoreFromArchive(${idx})">🔁</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateBulkActions() {
+        const checks = document.querySelectorAll('.row-checkbox:checked');
+        document.getElementById('selectedCount').textContent = checks.length + ' נבחרו';
+        document.getElementById('bulkActions').classList.toggle('visible', checks.length>0);
+    }
+
+    // ====== CRUD ======
+    function saveRow() {
+        const plate = document.getElementById('plate').value.trim();
+        const date = document.getElementById('targetDate').value;
+        if(!plate || !date) {
+            showModal('⚠️ נא למלא לפחות לוחית רישוי ותאריך יעד');
+            return;
+        }
+        state.fleet.push({
+            plate, owner: document.getElementById('owner').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            targetDate: date, notes: document.getElementById('notes').value.trim()
+        });
+        clearForm(); render(); showToast('הרכב נשמר ✅');
+    }
+
+    function updateRow() {
+        if(state.editIndex===null) return;
+        const plate = document.getElementById('plate').value.trim();
+        const date = document.getElementById('targetDate').value;
+        if(!plate || !date) {
+            showModal('⚠️ נא למלא לפחות לוחית רישוי ותאריך יעד');
+            return;
+        }
+        state.fleet[state.editIndex] = {
+            plate, owner: document.getElementById('owner').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            targetDate: date, notes: document.getElementById('notes').value.trim()
+        };
+        clearForm(); render(); showToast('עודכן ✏️');
+    }
+
+    function editRow(index) {
+        const item = state.fleet[index];
+        document.getElementById('plate').value = item.plate;
+        document.getElementById('owner').value = item.owner || '';
+        document.getElementById('phone').value = item.phone || '';
+        document.getElementById('address').value = item.address || '';
+        document.getElementById('targetDate').value = item.targetDate;
+        document.getElementById('notes').value = item.notes || '';
+        state.editIndex = index;
+        setFormMode('edit');
+        window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function cancelEdit() { clearForm(); showToast('בוטל'); }
+
     function deleteRow(index) {
-        if(confirm("למחוק?")) { fleet.splice(index, 1); updateTable(); }
+        if(!confirm('למחוק?')) return;
+        state.fleet.splice(index,1);
+        if(state.editIndex===index) cancelEdit();
+        else if(state.editIndex!==null && state.editIndex>index) state.editIndex--;
+        render();
+    }
+
+    function moveToArchive(index) {
+        if(!confirm('להעביר לארכיון?')) return;
+        const item = state.fleet[index];
+        item.doneDate = new Date().toLocaleDateString('he-IL');
+        state.archive.push(item);
+        state.fleet.splice(index,1);
+        if(state.editIndex===index) cancelEdit();
+        else if(state.editIndex!==null && state.editIndex>index) state.editIndex--;
+        render();
+        showToast('הועבר לארכיון 📦');
+    }
+
+    function restoreFromArchive(idx) {
+        if(!confirm('לשחזר?')) return;
+        const item = state.archive[idx];
+        delete item.doneDate;
+        state.fleet.push(item);
+        state.archive.splice(idx,1);
+        render();
+    }
+
+    function restoreAllArchive() {
+        if(!state.archive.length) return;
+        if(!confirm('לשחזר הכל?')) return;
+        state.archive.forEach(i=>delete i.doneDate);
+        state.fleet.push(...state.archive);
+        state.archive = [];
+        render();
+    }
+
+    function clearArchive() {
+        if(!state.archive.length) return;
+        if(!confirm('לנקות ארכיון? בלתי הפיך!')) return;
+        state.archive = [];
+        render();
+    }
+
+    function bulkMoveToArchive() {
+        const indices = [...document.querySelectorAll('.row-checkbox:checked')].map(c=>+c.dataset.index).sort((a,b)=>b-a);
+        if(!indices.length) return;
+        if(!confirm(`להעביר ${indices.length} רכבים?`)) return;
+        indices.forEach(i=>{ state.fleet[i].doneDate = new Date().toLocaleDateString('he-IL'); state.archive.push(state.fleet[i]); });
+        indices.forEach(i=>state.fleet.splice(i,1));
+        cancelEdit();
+        render();
+    }
+
+    function bulkDelete() {
+        const indices = [...document.querySelectorAll('.row-checkbox:checked')].map(c=>+c.dataset.index).sort((a,b)=>b-a);
+        if(!indices.length) return;
+        if(!confirm(`למחוק ${indices.length} רכבים?`)) return;
+        indices.forEach(i=>state.fleet.splice(i,1));
+        cancelEdit();
+        render();
+    }
+
+    function selectAll() { document.querySelectorAll('.row-checkbox').forEach(c=>c.checked=true); updateBulkActions(); }
+    function deselectAll() { document.querySelectorAll('.row-checkbox').forEach(c=>c.checked=false); updateBulkActions(); }
+    function toggleAllCheckboxes(src) { document.querySelectorAll('.row-checkbox').forEach(c=>c.checked=src.checked); updateBulkActions(); }
+
+    function setSort(col) {
+        if(state.sortBy===col) state.sortAsc = !state.sortAsc;
+        else { state.sortBy = col; state.sortAsc = true; }
+        render();
+    }
+
+    function sendRowWhatsApp(index) {
+        const i = state.fleet[index];
+        const text = `*פרטי רכב*\n🚗 ${i.plate}\n👤 ${i.owner||'-'}\n📍 ${i.address||'-'}\n📅 ${i.targetDate}`;
+        const phone = prompt('שלח למספר (השאר ריק לשיתוף):');
+        window.open(`https://wa.me/${phone?phone.replace(/\D/g,''):''}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function sendFullBackupWhatsApp() {
+        if(!state.fleet.length) return showToast('אין נתונים');
+        let text = "*גיבוי AutoTrack*\n\n"+state.fleet.map(i=>`🚗 ${i.plate} | ${i.owner}`).join('\n');
+        const phone = prompt('שלח למספר:');
+        window.open(`https://wa.me/${phone?phone.replace(/\D/g,''):''}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function exportToCSV() {
-        if (!fleet.length) return alert("אין נתונים");
-        let csv = "\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n";
-        fleet.forEach(i => csv += `"${i.plate}","${i.owner}","${i.phone}","${i.address}","${i.notes}","${i.targetDate}"\n`);
-        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+        let csv = '\uFEFFלוחית,בעל,טלפון,כתובת,הערות,תאריך\n';
+        state.fleet.forEach(i=> csv += `${escapeCSV(i.plate)},${escapeCSV(i.owner)},${escapeCSV(i.phone)},${escapeCSV(i.address)},${escapeCSV(i.notes)},${escapeCSV(i.targetDate)}\n`);
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'AutoTrack_Backup.csv';
         a.click();
+        showToast('הייצוא בוצע 📊');
     }
 
-    function importCSV(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    function importCSV(e) {
+        const file = e.target.files[0];
+        if(!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split('\n');
-            for (let i = 1; i < lines.length; i++) {
-                const c = lines[i].split(',').map(v => v.replace(/"/g, ''));
-                if (c.length >= 2) fleet.push({ plate: c[0], owner: c[1], phone: c[2], address: c[3], notes: c[4], targetDate: c[5] });
+        reader.onload = function(ev) {
+            const lines = ev.target.result.split('\n');
+            let count = 0;
+            for(let i=1;i<lines.length;i++) {
+                const cols = parseCSVLine(lines[i]);
+                if(cols.length>=2 && cols[0]) {
+                    state.fleet.push({ plate:cols[0], owner:cols[1], phone:cols[2], address:cols[3], notes:cols[4], targetDate:cols[5] });
+                    count++;
+                }
             }
-            updateTable();
-            event.target.value = '';
+            e.target.value = '';
+            render();
+            showToast(`יובאו ${count} רשומות`);
         };
         reader.readAsText(file);
     }
 
-    updateTable();
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if(e.ctrlKey && e.key==='s') { e.preventDefault(); state.editIndex!==null? updateRow() : saveRow(); }
+        if(e.key==='Escape') {
+            if (state.editIndex!==null) cancelEdit();
+            else hideModal();
+        }
+        if(e.ctrlKey && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+    });
+
+    // Warn before leaving with unsaved form (if editing)
+    window.addEventListener('beforeunload', function(e) {
+        if (state.editIndex !== null) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    loadState();
+    render();
 </script>
 </body>
 </html>
